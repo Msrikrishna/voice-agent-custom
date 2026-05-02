@@ -68,11 +68,21 @@ REQUIRED_VARS = {
 }
 
 
+_PLACEHOLDER_FRAGMENTS = ("your-project", "your_", "REPLACE", "xxx")
+
+
+def _is_placeholder(value: str) -> bool:
+    lowered = value.lower()
+    return any(frag.lower() in lowered for frag in _PLACEHOLDER_FRAGMENTS)
+
+
 def check_env_vars() -> None:
     for var, source in REQUIRED_VARS.items():
         value = (os.environ.get(var) or "").strip()
         if not value:
             _record_fail(f"{var} missing in .env — get it from {source}")
+        elif _is_placeholder(value):
+            _record_fail(f"{var} still has placeholder value — get a real one from {source}")
         else:
             ok(f"{var} present ({len(value)} chars)")
 
