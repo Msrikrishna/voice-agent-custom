@@ -2,7 +2,7 @@
 
 > A working LiveKit voice agent on **Groq + Deepgram + ElevenLabs**, pre-wired with **Noveum** tracing, ready to be reshaped into your product with **Claude Code** in 3 hours.
 
-This is the starter repo for the **Vibe-Code a Voice AI Agent** workshop at Frontier Tower (May 7, 2026, 4:30–7:30 PM PT).
+This is the starter repo for the **Vibe-Code a Voice AI Agent** workshop at Frontier Tower (Thu May 14, 2026, 4:30–7:30 PM PT). 🍕🍻 Pizza and drinks on us.
 
 ## What you get
 

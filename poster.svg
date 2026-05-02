@@ -30,7 +30,7 @@
   <!-- Top eyebrow -->
   <g font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="20" letter-spacing="6">
     <text x="540" y="100" fill="#00FF87" text-anchor="middle">FRONTIER TOWER · LIVE WORKSHOP</text>
-    <text x="540" y="135" fill="#666" text-anchor="middle">// THU MAY 7 · 4:30 – 7:30 PM PT</text>
+    <text x="540" y="135" fill="#666" text-anchor="middle">// THU MAY 14 · 4:30 – 7:30 PM PT</text>
   </g>
 
   <!-- Decorative bracket -->
@@ -93,7 +93,7 @@
   <!-- Details -->
   <g font-family="-apple-system, system-ui, sans-serif" text-anchor="middle">
     <text x="540" y="1130" font-size="36" fill="#ffffff" font-weight="700">Frontier Tower · 9F Annex</text>
-    <text x="540" y="1175" font-size="22" fill="#888888" font-weight="500">50 builders · BYO laptop · free · snacks +🍕</text>
+    <text x="540" y="1175" font-size="22" fill="#888888" font-weight="500">50 builders · BYO laptop · free · 🍕 pizza + 🍻 drinks</text>
   </g>
 
   <!-- Bottom CTA -->

@@ -1,6 +1,8 @@
 # Workshop Runbook — Vibe-Code a Voice AI Agent
 
-> Frontier Tower, 9th Floor Annex · May 7, 2026 · 4:30–7:30 PM PT
+> Frontier Tower, 9th Floor Annex · Thu May 14, 2026 · 4:30–7:30 PM PT
+>
+> 🍕 Pizza and drinks provided · 🤝 50 builders · 💻 BYO laptop · free
 
 This is the runbook we'll follow together. Each stage has a single goal, a
 time-box, and one Claude Code prompt (from `PROMPT_CHEATSHEET.md`). Don't
@@ -9,15 +11,15 @@ together.
 
 ---
 
-## Stage 0 — Pre-flight (4:30–4:45)
+## Stage 0 — Pre-flight (4:30–4:45) 🍕
 
 **Goal:** Everyone has the starter cloned, `verify_setup.py` passes, agent runs
-locally.
+locally. Pizza is hot, drinks are open — grab a slice and let's go.
 
 1. Welcome + intros (60 sec each)
 2. The voice AI failure mode story (5 min)
 3. Confirm: `python verify_setup.py` shows green checks for everyone
-4. Quick demo of the unmodified Nova-template agent in
+4. Quick demo of the unmodified starter agent in
    https://agents-playground.livekit.io
 
 ---
@@ -122,14 +124,14 @@ Paste **PROMPT 7** to Claude Code. It does the full loop:
 
 ---
 
-## Stage 6 — Demos + Q&A (7:20–7:30)
+## Stage 6 — Demos + Q&A (7:20–7:30) 🍕🍻
 
-**Goal:** Show off your agent. 30 seconds each. Snacks open.
+**Goal:** Show off your agent. 30 seconds each. More pizza, drinks, networking.
 
 1. 3 attendees demo their agents live
 2. Q&A
 3. Keep building — your free Noveum tier covers continuous experimentation
-4. Stick around for 1:1 debugging if you want
+4. Stick around for 1:1 debugging if you want — we'll be there till they kick us out
 
 ---
 
