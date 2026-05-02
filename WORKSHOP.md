@@ -1,6 +1,6 @@
 # Workshop Runbook — Vibe-Code a Voice AI Agent
 
-> Frontier Tower, 9th Floor Annex · Thu May 14, 2026 · 4:30–7:30 PM PT
+> Frontier Tower, 10th Floor Annex · Thu May 14, 2026 · 4:30–7:30 PM PT
 >
 > 🍕 Pizza and drinks provided · 🤝 50 builders · 💻 BYO laptop · free
 
