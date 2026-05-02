@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1350" width="1080" height="1350">
+  <defs>
+    <linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00FF87"/>
+      <stop offset="50%" stop-color="#60EFFF"/>
+      <stop offset="100%" stop-color="#A78BFA"/>
+    </linearGradient>
+    <linearGradient id="waveGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00FF87" stop-opacity="0.2"/>
+      <stop offset="50%" stop-color="#60EFFF" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#A78BFA" stop-opacity="0.2"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#0e0e0e" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1080" height="1350" fill="#000000"/>
+  <rect width="1080" height="1350" fill="url(#grid)"/>
+
+  <!-- Top eyebrow -->
+  <g font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="20" letter-spacing="6">
+    <text x="540" y="100" fill="#00FF87" text-anchor="middle">FRONTIER TOWER · LIVE WORKSHOP</text>
+    <text x="540" y="135" fill="#666" text-anchor="middle">// THU MAY 7 · 4:30 – 7:30 PM PT</text>
+  </g>
+
+  <!-- Decorative bracket -->
+  <g stroke="#222" stroke-width="2" fill="none">
+    <path d="M 80 200 L 80 250"/>
+    <path d="M 80 200 L 130 200"/>
+    <path d="M 1000 200 L 1000 250"/>
+    <path d="M 1000 200 L 950 200"/>
+  </g>
+
+  <!-- Title -->
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif" font-weight="900" text-anchor="middle">
+    <text x="540" y="320" font-size="98" fill="#ffffff" letter-spacing="-2">VIBE-CODE</text>
+    <text x="540" y="430" font-size="98" fill="#ffffff" letter-spacing="-2">A VOICE AI</text>
+    <text x="540" y="540" font-size="98" fill="url(#brandGrad)" letter-spacing="-2" filter="url(#glow)">AGENT</text>
+  </g>
+
+  <!-- Subtitle -->
+  <g font-family="-apple-system, system-ui, sans-serif" text-anchor="middle">
+    <text x="540" y="615" font-size="30" fill="#ffffff" font-weight="500">A live workshop with Claude Code</text>
+    <text x="540" y="660" font-size="22" fill="#888888" font-weight="400">Build · break · fix · ship in 3 hours</text>
+  </g>
+
+  <!-- Waveform visual -->
+  <g transform="translate(540, 760)" stroke="url(#waveGrad)" stroke-width="4" stroke-linecap="round" filter="url(#glow)">
+    <line x1="-380" y1="-4" x2="-380" y2="4"/>
+    <line x1="-340" y1="-12" x2="-340" y2="12"/>
+    <line x1="-300" y1="-24" x2="-300" y2="24"/>
+    <line x1="-260" y1="-40" x2="-260" y2="40"/>
+    <line x1="-220" y1="-32" x2="-220" y2="32"/>
+    <line x1="-180" y1="-50" x2="-180" y2="50"/>
+    <line x1="-140" y1="-60" x2="-140" y2="60"/>
+    <line x1="-100" y1="-44" x2="-100" y2="44"/>
+    <line x1="-60" y1="-70" x2="-60" y2="70"/>
+    <line x1="-20" y1="-56" x2="-20" y2="56"/>
+    <line x1="20" y1="-64" x2="20" y2="64"/>
+    <line x1="60" y1="-48" x2="60" y2="48"/>
+    <line x1="100" y1="-58" x2="100" y2="58"/>
+    <line x1="140" y1="-38" x2="140" y2="38"/>
+    <line x1="180" y1="-46" x2="180" y2="46"/>
+    <line x1="220" y1="-30" x2="220" y2="30"/>
+    <line x1="260" y1="-22" x2="260" y2="22"/>
+    <line x1="300" y1="-16" x2="300" y2="16"/>
+    <line x1="340" y1="-10" x2="340" y2="10"/>
+    <line x1="380" y1="-4" x2="380" y2="4"/>
+  </g>
+
+  <!-- Stack pill row -->
+  <g font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="20" letter-spacing="4" text-anchor="middle">
+    <text x="540" y="890" fill="#aaaaaa">LIVEKIT · GROQ · DEEPGRAM</text>
+    <text x="540" y="925" fill="#aaaaaa">ELEVENLABS · NOVEUM · CLAUDE CODE</text>
+  </g>
+
+  <!-- Sub-500ms badge -->
+  <g transform="translate(540, 1010)">
+    <rect x="-180" y="-32" width="360" height="64" rx="32" fill="#0a0a0a" stroke="#00FF87" stroke-width="2"/>
+    <text x="0" y="8" font-family="-apple-system, system-ui, sans-serif" font-size="24" fill="#00FF87" text-anchor="middle" font-weight="700" letter-spacing="1">⚡ SUB-500ms VOICE STACK</text>
+  </g>
+
+  <!-- Details -->
+  <g font-family="-apple-system, system-ui, sans-serif" text-anchor="middle">
+    <text x="540" y="1130" font-size="36" fill="#ffffff" font-weight="700">Frontier Tower · 9F Annex</text>
+    <text x="540" y="1175" font-size="22" fill="#888888" font-weight="500">50 builders · BYO laptop · free · snacks +🍕</text>
+  </g>
+
+  <!-- Bottom CTA -->
+  <g transform="translate(540, 1260)">
+    <rect x="-260" y="-30" width="520" height="60" rx="30" fill="url(#brandGrad)"/>
+    <text x="0" y="8" font-family="-apple-system, system-ui, sans-serif" font-size="22" fill="#000000" text-anchor="middle" font-weight="800" letter-spacing="2">RSVP → APP.FRONTIERTOWER.IO</text>
+  </g>
+
+  <!-- Tiny corner credit -->
+  <text x="540" y="1320" font-family="ui-monospace, monospace" font-size="13" fill="#444" text-anchor="middle" letter-spacing="3">HOSTED BY NOVEUM.AI</text>
+</svg>

@@ -1,0 +1,9 @@
+livekit-agents>=1.5.0
+livekit-plugins-silero
+livekit-plugins-groq
+livekit-plugins-deepgram
+livekit-plugins-elevenlabs
+noveum-trace[livekit]
+aiohttp
+python-dotenv
+requests
