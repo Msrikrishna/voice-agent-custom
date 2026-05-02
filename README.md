@@ -12,7 +12,16 @@ This is the starter repo for the **Vibe-Code a Voice AI Agent** workshop at Fron
 - A simple knowledge base loader (`build_knowledge.py` + `knowledge_sources/`)
 - 4 example "customization recipes" in `recipes/` you can hand to Claude Code
 - A `verify_setup.py` script that pings every API to confirm your keys work
-- `CLAUDE.md` so your Claude Code instance knows what this repo is
+- `CLAUDE.md` so your Claude Code instance knows what this repo is — and how to drive the Noveum MCP
+
+## How the workshop works
+
+Everything happens in two terminals — no browser required (one optional).
+
+- **Terminal 1:** `python agent.py dev` (or `lk agent deploy`)
+- **Terminal 2:** Claude Code, which:
+  - Reshapes the agent code into your product (Stage 2)
+  - Drives the Noveum MCP to register endpoints, generate personas + scenarios, run NovaSynth batches, fetch NovaPilot reports, and apply fixes back to your code (Stages 3–5)
 
 ## Quick start (BEFORE the workshop)
 

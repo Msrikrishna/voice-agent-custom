@@ -80,41 +80,99 @@ instructions to the LLM about WHEN to call this tool.
 
 ---
 
-## PROMPT 4 — Generate NovaSynth personas + scenarios
+## PROMPT 4 — Set up NovaSynth + run the batch (via Noveum MCP)
 
-For Stage 3 (stress-testing).
+For Stage 3 (stress-testing). Claude Code drives the entire NovaSynth setup through the Noveum MCP — no UI clicks required.
 
 ```
-Generate 5 NovaSynth personas and 5 scenarios for testing my voice agent.
+Use the Noveum MCP to run a stress-test batch against my deployed agent.
+My agent: [1-sentence description of what it does, e.g., "voice ordering
+agent for Tony's Pizza Palace"]
+My LiveKit URL: <from .env, like wss://noveum-ai-peg9ygln.livekit.cloud>
+My agent_name (from WorkerOptions in agent.py): voice-workshop-agent
 
-My agent does: [1-sentence description]
+Step 1 — Make sure the project exists. Use getApiV1Projects, find or
+create one called "voice-workshop". Save the projectId.
 
-For each persona, output a JSON object that fits this shape:
-- name, description, goal, personalityTraits[], tonePreference,
-  primaryLanguage[], knowledgeBase[], age, occupation, location,
-  educationLevel, gender, interruptionLevel (0-1), speakingSpeed (0.5-1.5)
+Step 2 — Register the LiveKit agent endpoint via
+postApiV1NovasynthAgent-endpoints with:
+- name: "Workshop Agent (LiveKit)"
+- type: livekit
+- livekitUrl, livekitApiKey, livekitApiSecret from my env (read .env)
+- livekitAgentName: voice-workshop-agent
+Save the returned endpoint.id.
 
-Make personas DIVERSE: different ages, occupations, knowledge levels,
-languages where relevant. At least one should be:
-- A frustrated / impatient user
-- A confused user who asks clarifying questions
-- An adversarial / off-script user (testing edge cases)
+Step 3 — Generate 5 personas via postApiV1NovasynthPersonasGenerate.
+Make them DIVERSE: at least one frustrated user, one confused user,
+one adversarial / off-script user, one ESL speaker, one happy path.
+All scoped to my agent's domain.
 
-For each scenario, output a JSON object with:
-- name, description, scenarioType (workflow|conversation|knowledge_base),
-  interruptionLevel, metadata, and an `events` array. Each event has:
-  id, parent_id (for branching), action (what the synthetic user does),
-  condition (when this fires, or null), fixed (boolean).
+Step 4 — Generate 5 scenarios via postApiV1NovasynthScenariosGenerate.
+Cover: happy path, edge case, error recovery, off-topic deflection,
+adversarial. Each with branching events (id, parent_id, action,
+condition, fixed).
 
-Pair the 5 personas with 5 scenarios as 10 explicit pairs (some personas
-fit multiple scenarios). I'll paste the JSONs into the Noveum NovaSynth UI.
+Step 5 — Trigger a batch run via postApiV1NovasynthBatch-analysis...
+with explicit pairs (NOT cartesian) — 10 thoughtful pairings.
+mode: text (cheaper than voice for this dev loop), concurrencyLimit: 3,
+maxCallDurationS: 180.
+
+Step 6 — Print the batch run id + status. Tell me when the first call
+completes so I know it's working.
 ```
 
 ---
 
-## PROMPT 5 — Make the system prompt shorter / faster
+## PROMPT 5 — Poll the batch + summarize traces (via MCP)
 
-System prompt too long → high latency. Run this before deploying.
+Use this while the batch from PROMPT 4 is running, or after it finishes.
+
+```
+Tail the active NovaSynth batch run via the Noveum MCP.
+
+1. Use getApiV1NovasynthBatch-analysisByBatchRunId to poll the batch.
+   Wait until all calls reach a terminal state (completed/failed).
+2. Once done, use getApiV1Traces filtered by novasynth.batch_run_id
+   to fetch every trace from the run.
+3. For each trace, summarize:
+   - Total duration
+   - STT span time, LLM span time, TTS span time (the latency budget)
+   - Tool calls made + whether arguments looked correct
+   - Whether the agent stayed in character (look at full I/O)
+4. Tell me which 2-3 traces look the worst (longest latency,
+   off-script, hallucinated). I'll inspect those visually.
+```
+
+---
+
+## PROMPT 6 — Apply NovaPilot's recommendations (full round-trip via MCP)
+
+Stage 5 — Claude Code drives NovaPilot, applies fixes, redeploys, re-runs.
+
+```
+Run the full NovaPilot fix loop for my last batch run id [BATCH_ID].
+
+1. Use getApiV1NovasynthRun-analysisByBatchRunId to fetch the
+   NovaPilot report. If empty, call
+   postApiV1NovasynthBatch-analysisByBatchRunIdRebuild first and poll
+   until ready.
+2. Read the failure-pattern recommendations.
+3. For each recommendation, propose a code change to SYSTEM_PROMPT or
+   a tool's docstring/implementation in this repo. Show me the diff.
+4. After I approve, apply the changes.
+5. Run `lk agent deploy` to push the new version.
+6. Trigger a NEW batch run via postApiV1NovasynthBatch-analysis...
+   with the SAME persona-scenario pairs as the previous batch
+   (so we can compare apples to apples).
+7. Once done, use getApiV1NovasynthRun-analysisByRunId on both batches
+   and tell me the score deltas per scorer. Did we improve?
+```
+
+---
+
+## PROMPT 7 — Shorten / speed up the system prompt
+
+Long system prompts hurt latency. Run this before any deploy.
 
 ```
 My SYSTEM_PROMPT in agent.py is too long. Shorten it without losing the
@@ -126,48 +184,32 @@ Constraints:
 - Keep the voice output rules section verbatim
 - Reorder so the most-load-bearing instructions come first
 - Drop redundant rephrasings
+
+After editing, run `lk agent deploy` and confirm the new agent registered.
 ```
 
 ---
 
-## PROMPT 6 — Apply NovaPilot's recommendations
+## PROMPT 8 — Debug a latency issue from a trace span
 
-Stage 5 — turn the AI analyst's report into a code change.
-
-```
-NovaPilot in Noveum gave me this recommendation after evaluating my agent:
-
-[PASTE THE RECOMMENDATION HERE — copy from the NovaPilot UI]
-
-Update SYSTEM_PROMPT (or the relevant tool docstring) in this repo to address
-the recommendation. Show me the diff. Don't make any other changes.
-
-If the recommendation is about a tool that doesn't exist yet, scaffold the
-tool too.
-```
-
----
-
-## PROMPT 7 — Debug a latency issue from a Noveum trace
-
-When traces show high latency on a specific span.
+When PROMPT 5 surfaces high latency on a specific span.
 
 ```
 My Noveum trace shows that the [STT|LLM|TTS] span takes [N] ms on average
 for my voice agent. That's too slow for sub-500ms turns.
 
 Help me reduce it. Look at:
-- agent.py for any config flags I can tune for that provider
+- agent.py for config flags I can tune for that provider
 - Whether I should switch model / voice / streaming setting
-- Whether anything in the system prompt or tool calls is bloating the
-  request to that provider
+- Whether the system prompt or tool calls are bloating the request
 
 Show me the smallest change that should help. Don't refactor anything else.
+After editing, run `lk agent deploy`.
 ```
 
 ---
 
-## PROMPT 8 — Pre-deploy checklist
+## PROMPT 9 — Pre-deploy checklist
 
 Run this before each `lk agent deploy`.
 

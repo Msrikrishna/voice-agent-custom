@@ -11,10 +11,39 @@ where they will:
 
 1. Customize this agent into their own voice product (pizza bot, healthcare
    assistant, sales SDR, customer support, trivia host — whatever they bring)
-2. Deploy it to LiveKit Cloud
+2. Deploy it to LiveKit Cloud (`lk agent create` / `lk agent deploy`)
 3. Stress-test it with synthetic users via Noveum NovaSynth
-4. Read traces in Noveum to debug latency / quality
+4. Read traces to debug latency / quality
 5. Apply NovaPilot's AI-suggested fixes back through Claude Code
+
+## The Noveum MCP — your primary integration surface
+
+The Noveum MCP exposes the entire NovaSynth + traces + NovaPilot API as
+tools. The user expects YOU (Claude Code) to drive setup, batch runs,
+report fetching, and round-trip fixes — they shouldn't need to click
+through the Noveum UI. The browser is *only* useful for visually
+inspecting individual traces.
+
+Tools you'll commonly call:
+
+| MCP tool | What it does |
+|---|---|
+| `mcp__noveum__getApiV1Projects` | List projects; find/create the workshop project |
+| `mcp__noveum__postApiV1NovasynthAgent-endpoints` | Register the deployed LiveKit agent |
+| `mcp__noveum__postApiV1NovasynthPersonasGenerate` | AI-generate diverse personas |
+| `mcp__noveum__postApiV1NovasynthScenariosGenerate` | AI-generate branching scenarios |
+| `mcp__noveum__postApiV1NovasynthBatch-analysisByBatchRu...` | Trigger or rebuild batch analysis |
+| `mcp__noveum__getApiV1NovasynthBatch-analysisByBatchRunId` | Poll batch progress |
+| `mcp__noveum__getApiV1Traces` | Fetch traces (filter by `novasynth.run_id` etc.) |
+| `mcp__noveum__getApiV1NovasynthRun-analysisByRunId` | NovaPilot report for a run |
+| `mcp__noveum__postApiV1NovasynthRun-analysisByRunIdRebuild` | Force-regenerate the report |
+
+When the user pastes PROMPT 4-6 from `PROMPT_CHEATSHEET.md`, you should
+chain these MCP calls without asking the user to do anything in a browser.
+
+If the MCP isn't connected, tell the user how to add it: their `NOVEUM_API_KEY`
+in `.env` is the same key the MCP uses; the connection is configured per
+Claude Code instance.
 
 ## Stack (already wired — DO NOT change unless asked)
 

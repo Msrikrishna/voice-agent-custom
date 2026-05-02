@@ -24,20 +24,25 @@ locally.
 
 ## Stage 1 — Fork & Deploy (4:45–5:15)
 
-**Goal:** Your generic starter agent is live on LiveKit Cloud and you've
-placed your first call.
+**Goal:** Your generic starter agent is live on LiveKit Cloud as a registered worker.
 
-1. Run `python agent.py dev` locally
-2. Open https://agents-playground.livekit.io, paste LiveKit credentials
-3. Place a call → verify the generic agent greets you
-4. Deploy to LiveKit Cloud:
-   ```bash
-   lk cloud auth
-   lk agent create   # follow prompts
-   lk agent list     # confirm "voice-workshop-agent" is up
-   ```
+```bash
+python agent.py dev          # local — keep this running in one terminal
+```
 
-✅ **Checkpoint:** You can place a call against your deployed agent and hear it speak.
+You should see `registered worker {agent_name: voice-workshop-agent, ...}`. The agent is now alive on LiveKit Cloud waiting for room dispatch.
+
+Then in a second terminal, deploy a persistent copy:
+
+```bash
+lk cloud auth                # one-time browser OAuth (fast)
+lk agent create              # interactive — picks up agent.py + .env
+lk agent list                # confirm "voice-workshop-agent" registered
+```
+
+(Optional: place a call from agents-playground.livekit.io if you want to hear it. But for the rest of the workshop we'll dispatch synthetic calls via the Noveum MCP — no browser needed.)
+
+✅ **Checkpoint:** `lk agent list` shows your agent. Worker logs show it's connected to LiveKit Cloud.
 
 ---
 
@@ -49,65 +54,71 @@ trivia host, customer support — whatever you brought).
 1. Decide what your agent does. If stuck, pick a recipe from `recipes/`.
 2. Open Claude Code in this repo: `claude`
 3. Paste **PROMPT 2** from `PROMPT_CHEATSHEET.md` with your idea filled in
-4. Claude will rewrite `SYSTEM_PROMPT`, add tools, generate knowledge files
-5. Run `python build_knowledge.py && python agent.py dev`
-6. Place another call → confirm the agent now plays YOUR persona
-7. Re-deploy: `lk agent deploy`
+4. Claude rewrites `SYSTEM_PROMPT`, adds tools, generates knowledge files
+5. Rebuild + reload locally: `python build_knowledge.py && python agent.py dev`
+6. Re-deploy to LiveKit Cloud: `lk agent deploy`
 
-✅ **Checkpoint:** Your agent introduces itself as your custom persona and
-answers domain questions.
+✅ **Checkpoint:** Your local + deployed agent both register with the new persona.
 
 ---
 
-## Stage 3 — Stress-Test with NovaSynth (5:45–6:30)
+## Stage 3 — Stress-Test via Noveum MCP (5:45–6:30)
 
-**Goal:** 10 synthetic callers placed against your live agent.
+**Goal:** 10 synthetic callers placed against your deployed agent — zero clicks, all from Claude Code.
 
-1. Go to https://noveum.ai → NovaSynth → Agent Endpoints → New → LiveKit
-2. Configure the endpoint (URL, key, secret, agent name = `voice-workshop-agent`)
-3. Use **PROMPT 4** in Claude Code to generate 5 personas + 5 scenarios
-4. Paste the generated configs into NovaSynth → Personas + Scenarios
-5. Create a Batch Run with 10 explicit pairs (NOT Cartesian — see below)
-6. Click Run
+The Noveum MCP exposes the entire NovaSynth API as tools Claude Code can call directly:
+- `postApiV1NovasynthAgent-endpoints` — register your LiveKit agent
+- `postApiV1NovasynthPersonasGenerate` — AI-generate diverse personas
+- `postApiV1NovasynthScenariosGenerate` — AI-generate scenarios
+- `postApiV1NovasynthBatch-analysis...` — kick off the batch run
+- `getApiV1NovasynthRun-analysisByRunId` — read results
 
-**Why explicit pairs:** each persona's background only fits some scenarios.
-10 thoughtful pairs > 25 noisy ones for signal quality.
+1. Make sure the Noveum MCP is connected in Claude Code (it's set up by default if `NOVEUM_API_KEY` is in your env)
+2. Paste **PROMPT 4** from `PROMPT_CHEATSHEET.md` into Claude Code — it tells Claude to:
+   - Register `voice-workshop-agent` as a NovaSynth Agent Endpoint
+   - Generate 5 personas + 5 scenarios for your specific use case
+   - Create a 10-pair batch run
+   - Trigger it
+3. Claude Code drives all of the above through MCP tool calls. You watch.
+4. Run **PROMPT 5** to poll status and tail the active run
 
-✅ **Checkpoint:** Batch run is in progress, you can see calls being placed
-in NovaSynth's "Active Runs" view.
+**Why explicit pairs:** each persona's background only fits some scenarios. 10 thoughtful pairs > 25 noisy ones for signal quality.
+
+✅ **Checkpoint:** Claude Code reports "batch run started, ID: bxr_..." and you can see calls completing one by one.
 
 ---
 
-## Stage 4 — Debug with Three-Pane Traces (6:30–7:00)
+## Stage 4 — Debug Traces (6:30–7:00)
 
 **Goal:** Find your agent's actual latency budget and quality failures.
 
-1. Go to Noveum → Traces → filter by `voice-workshop` project
-2. Pick a recent call → open the three-pane trace view
-3. Expand the span tree: STT → LLM → TTS
-4. Note the slowest span (usually LLM or TTS)
-5. Look for failures: hallucinated facts, wrong tool calls, off-script responses
+Two ways to read traces — pick whichever fits your style:
 
-✅ **Checkpoint:** You can name (a) your worst latency span and (b) one
-quality failure your agent made.
+**Option A — via MCP (terminal):** Paste **PROMPT 6** to Claude Code. It calls `getApiV1Traces` filtered by `novasynth.run_id`, summarizes the per-span latency budget (STT vs LLM vs TTS), and flags the slowest spans across the run. Faster for batch summaries.
+
+**Option B — via browser:** Open https://noveum.ai → Traces → filter by `voice-workshop` project. The three-pane view is genuinely better for inspecting a single trace visually (timeline, audio playback, full I/O at each step).
+
+For workshop purposes: do A first to find the worst trace, then B to inspect it.
+
+✅ **Checkpoint:** You can name (a) your worst latency span and (b) one quality failure your agent made.
 
 ---
 
 ## Stage 5 — Fix with NovaPilot + Claude (7:00–7:20)
 
-**Goal:** Ship a fix and re-run the batch.
+**Goal:** Ship a fix and re-run the batch — round-trip, terminal-only.
 
-1. Go to Noveum → Eval Jobs → run the auto-created job for your batch
-2. Click NovaPilot → Generate Report
-3. Read the failure pattern recommendations
-4. Copy the recommendation into Claude Code with **PROMPT 6**
-5. Claude updates `SYSTEM_PROMPT` (or tools) to address it
-6. Re-deploy: `lk agent deploy`
-7. Re-run the NovaSynth batch
-8. Compare scores before/after in NovaPilot
+Paste **PROMPT 7** to Claude Code. It does the full loop:
 
-✅ **Checkpoint:** Your second NovaPilot report shows improvement on the
-metric you targeted.
+1. Calls `postApiV1NovasynthRun-analysisByRunIdRebuild` (or polls `getApiV1NovasynthRun-analysisByRunId`) to fetch the NovaPilot report
+2. Reads the failure-pattern recommendations
+3. Updates `SYSTEM_PROMPT` (or tools) in `agent.py` to address them
+4. Tells you the diff before applying
+5. After you approve, runs `lk agent deploy`
+6. Triggers a fresh batch run via `postApiV1NovasynthBatch-analysis...`
+7. Polls until done, summarizes before/after scores
+
+✅ **Checkpoint:** Second batch shows score improvement on the metric you targeted.
 
 ---
 
