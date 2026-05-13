@@ -51,7 +51,7 @@ Please:
    domain knowledge my agent should know.
 5. Change `agent_name` in `WorkerOptions` to a slug for my agent.
 
-Don't touch the LiveKit / Groq / Deepgram / ElevenLabs / VAD / endpointing
+Don't touch the LiveKit / Groq / ElevenLabs / VAD / endpointing
 config. Don't touch the Noveum tracing setup. Keep the changes tight.
 ```
 

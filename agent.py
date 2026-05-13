@@ -42,7 +42,7 @@ from livekit.agents import (
     RoomInputOptions,
     WorkerOptions,
 )
-from livekit.plugins import deepgram, elevenlabs, groq, silero
+from livekit.plugins import elevenlabs, groq, silero
 
 from tools import example_tool, end_call
 
@@ -190,7 +190,7 @@ async def entrypoint(ctx: JobContext) -> None:
 
     session = AgentSession(
         vad=vad,
-        stt=deepgram.STT(model="nova-2", language="en"),
+        stt=elevenlabs.STT(model_id="scribe_v2_realtime", language_code="en"),
         llm=groq.LLM(
             model=os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b"),
             temperature=float(os.environ.get("GROQ_TEMPERATURE", "0.4")),

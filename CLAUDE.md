@@ -48,7 +48,7 @@ Claude Code instance.
 ## Stack (already wired — DO NOT change unless asked)
 
 - **LiveKit** for real-time voice (WebRTC orchestration)
-- **Deepgram nova-2** for STT
+- **ElevenLabs Scribe** (`scribe_v2_realtime`) for STT
 - **Groq `openai/gpt-oss-120b`** for LLM
 - **ElevenLabs eleven_turbo_v2_5** for TTS
 - **Silero** for VAD
@@ -67,7 +67,7 @@ Claude Code instance.
 
 ## What stays as-is
 
-- All the LiveKit / Groq / Deepgram / ElevenLabs plugin config
+- All the LiveKit / Groq / ElevenLabs plugin config
 - VAD tuning (`min_silence_duration=0.6`, etc.)
 - Endpointing thresholds (`min_endpointing_delay=0.8`, etc.)
 - Interruption handling (`min_interruption_duration=0.7`, etc.)

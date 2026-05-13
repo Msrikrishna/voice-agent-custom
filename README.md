@@ -1,6 +1,6 @@
 # Voice AI Agent Workshop Starter
 
-> A working LiveKit voice agent on **Groq + Deepgram + ElevenLabs**, pre-wired with **Noveum** tracing, ready to be reshaped into your product with **Claude Code** in 3 hours.
+> A working LiveKit voice agent on **Groq + ElevenLabs + Noveum**, with ElevenLabs handling both **STT and TTS** — pre-wired with **Noveum** tracing, ready to be reshaped into your product with **Claude Code** in 3 hours.
 
 This is the starter repo for the **Vibe-Code a Voice AI Agent** workshop at Frontier Tower (Thu May 14, 2026, 4:30–7:30 PM PT). 🍕🍻 Pizza and drinks on us.
 
@@ -43,12 +43,11 @@ python verify_setup.py
 
 | Service | Sign up | Used for |
 |---------|---------|----------|
-| [Anthropic](https://console.anthropic.com) | Claude Code |
-| [LiveKit Cloud](https://cloud.livekit.io) | Real-time voice infra + free deploys |
-| [Deepgram](https://console.deepgram.com) | Streaming STT |
-| [Groq](https://console.groq.com) | Sub-200ms LLM inference |
-| [ElevenLabs](https://elevenlabs.io) | Natural low-latency TTS |
-| [Noveum](https://noveum.ai) | Tracing + synthetic users + AI debugging |
+| [Anthropic](https://console.anthropic.com) | | Claude Code |
+| [LiveKit Cloud](https://cloud.livekit.io) | | Real-time voice infra + free deploys |
+| [Groq](https://console.groq.com) | | Sub-200ms LLM inference |
+| [ElevenLabs](https://elevenlabs.io) | | Streaming STT (Scribe) + natural TTS |
+| [Noveum](https://noveum.ai) | | Tracing + synthetic users + AI debugging |
 
 ## Running locally
 
@@ -77,9 +76,9 @@ lk agent logs <agent-id> -f
 ## Stack
 
 ```
-Caller ─► LiveKit ─► Deepgram (STT) ─► Groq gpt-oss-120b (LLM) ─► ElevenLabs (TTS) ─► Caller
-                                            │
-                                            └─► Noveum (traces, NovaSynth, NovaPilot)
+Caller ─► LiveKit ─► ElevenLabs Scribe (STT) ─► Groq gpt-oss-120b (LLM) ─► ElevenLabs (TTS) ─► Caller
+                                                       │
+                                                       └─► Noveum (traces, NovaSynth, NovaPilot)
 ```
 
 ## License

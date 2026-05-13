@@ -61,7 +61,6 @@ REQUIRED_VARS = {
     "LIVEKIT_URL": "LiveKit Cloud → Settings → Keys",
     "LIVEKIT_API_KEY": "LiveKit Cloud → Settings → Keys",
     "LIVEKIT_API_SECRET": "LiveKit Cloud → Settings → Keys",
-    "DEEPGRAM_API_KEY": "https://console.deepgram.com",
     "GROQ_API_KEY": "https://console.groq.com",
     "ELEVENLABS_API_KEY": "https://elevenlabs.io → Profile → API Key",
     "NOVEUM_API_KEY": "https://noveum.ai → Settings → API Keys",
@@ -116,28 +115,6 @@ def check_groq() -> None:
         _record_fail(f"Groq request failed: {exc}")
 
 
-def check_deepgram() -> None:
-    try:
-        import requests
-    except ImportError:
-        return
-    key = (os.environ.get("DEEPGRAM_API_KEY") or "").strip()
-    if not key:
-        return
-    try:
-        r = requests.get(
-            "https://api.deepgram.com/v1/projects",
-            headers={"Authorization": f"Token {key}"},
-            timeout=15,
-        )
-        if r.status_code == 200:
-            ok("Deepgram API reachable + key valid")
-        else:
-            _record_fail(f"Deepgram returned HTTP {r.status_code}: {r.text[:120]}")
-    except Exception as exc:
-        _record_fail(f"Deepgram request failed: {exc}")
-
-
 def check_elevenlabs() -> None:
     try:
         import requests
@@ -153,7 +130,7 @@ def check_elevenlabs() -> None:
             timeout=15,
         )
         if r.status_code == 200:
-            ok("ElevenLabs API reachable + key valid")
+            ok("ElevenLabs API reachable + key valid (STT + TTS)")
         else:
             _record_fail(f"ElevenLabs returned HTTP {r.status_code}: {r.text[:120]}")
     except Exception as exc:
@@ -210,7 +187,6 @@ def main() -> int:
     print()
     print("--- Live API checks ---")
     check_groq()
-    check_deepgram()
     check_elevenlabs()
     check_noveum()
     print()
