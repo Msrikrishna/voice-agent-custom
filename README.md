@@ -25,7 +25,7 @@ Work through these at the start of the workshop. Step 1 (signups) may need a few
 git clone <this-repo-url> voice-agent-workshop-starter
 cd voice-agent-workshop-starter
 
-python3 -m venv .venv && source .venv/bin/activate
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
 cp .env.example .env
@@ -96,6 +96,37 @@ lk cloud auth        # one-time browser OAuth
 
 Once all 6 setup steps are green, open **[WORKSHOP.md](WORKSHOP.md)** for the stage-by-stage runbook.
 Use **[PROMPT_CHEATSHEET.md](PROMPT_CHEATSHEET.md)** for the 7 prompts — copy each one and paste it into Cursor or `claude` as-is (only PROMPT 2 has a bracket to fill in).
+
+---
+
+## Filling in `livekit.toml`
+
+The `livekit.toml` file is used by the LiveKit CLI (`lk agent create` / `lk agent deploy`). It starts empty — fill it in after running `lk agent create`:
+
+```toml
+[project]
+  subdomain = "your-project-subdomain"   # found in LiveKit Cloud → Settings → subdomain (e.g. "my-project-abc123")
+
+[agent]
+  id = "CA_xxxxxxxxxxxx"                 # shown after running `lk agent create`, or via `lk agent list`
+```
+
+You don't need to fill this in before the smoke test (Step 5) — only before deploying via `lk agent deploy`.
+
+---
+
+## Troubleshooting
+
+**`verify_setup.py` shows LiveKit CLI not found**
+
+The LiveKit CLI warning is non-blocking for the smoke test (Step 5). You only need it for deployment (Step 6). Install it with:
+```bash
+brew install livekit-cli
+```
+
+**Agent exits immediately / not responding in playground**
+
+Make sure `python agent.py dev` is still running in a terminal — it must stay open. The playground connects to LiveKit Cloud which dispatches to your local worker.
 
 ---
 
