@@ -65,7 +65,7 @@ Save, then click the **reload** button next to the server (or fully restart Curs
 ### Step 4 — Verify all keys work
 
 ```bash
-python3 verify_setup.py
+python verify_setup.py
 ```
 
 All checks must be green. If anything is red, fix it now.
@@ -73,8 +73,8 @@ All checks must be green. If anything is red, fix it now.
 ### Step 5 — Smoke test: run the starter agent and make a call
 
 ```bash
-python3 build_knowledge.py
-python3 agent.py dev
+python build_knowledge.py
+python agent.py dev
 ```
 
 You should see `registered worker {agent_name: workshop-starter-agent, ...}`.
@@ -126,7 +126,7 @@ brew install livekit-cli
 
 **Agent exits immediately / not responding in playground**
 
-Make sure `python3 agent.py dev` is still running in a terminal — it must stay open. The playground connects to LiveKit Cloud which dispatches to your local worker.
+Make sure `python agent.py dev` is still running in a terminal — it must stay open. The playground connects to LiveKit Cloud which dispatches to your local worker.
 
 ---
 

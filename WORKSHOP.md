@@ -18,7 +18,7 @@ locally. Pizza is hot, drinks are open — grab a slice and let's go.
 
 1. Welcome + intros (60 sec each)
 2. The voice AI failure mode story (5 min)
-3. Confirm: `python3 verify_setup.py` shows green checks for everyone
+3. Confirm: `python verify_setup.py` shows green checks for everyone
 4. Quick demo of the unmodified starter agent in
    https://agents-playground.livekit.io
 
@@ -29,7 +29,7 @@ locally. Pizza is hot, drinks are open — grab a slice and let's go.
 **Goal:** Your generic starter agent is live on LiveKit Cloud as a registered worker.
 
 ```bash
-python3 agent.py dev          # local — keep this running in one terminal
+python agent.py dev          # local — keep this running in one terminal
 ```
 
 You should see `registered worker {agent_name: workshop-starter-agent, ...}`. The agent is now alive on LiveKit Cloud waiting for room dispatch.
