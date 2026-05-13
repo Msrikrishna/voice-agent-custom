@@ -1,8 +1,8 @@
-# CLAUDE.md — instructions for Claude Code working in this repo
+# CLAUDE.md — instructions for Cursor / Claude Code working in this repo
 
-This file is read automatically by Claude Code when you open this repo. It
-gives Claude the context it needs to help you customize the agent at the
-workshop.
+This file is read automatically by Cursor and Claude Code when you open this
+repo. It gives the AI the context it needs to help you customize the agent at
+the workshop.
 
 ## What this repo is
 
@@ -14,13 +14,13 @@ where they will:
 2. Deploy it to LiveKit Cloud (`lk agent create` / `lk agent deploy`)
 3. Stress-test it with synthetic users via Noveum NovaSynth
 4. Read traces to debug latency / quality
-5. Apply NovaPilot's AI-suggested fixes back through Claude Code
+5. Apply NovaPilot's AI-suggested fixes back through Cursor / Claude Code
 
 ## The Noveum MCP — your primary integration surface
 
 The Noveum MCP exposes the entire NovaSynth + traces + NovaPilot API as
-tools. The user expects YOU (Claude Code) to drive setup, batch runs,
-report fetching, and round-trip fixes — they shouldn't need to click
+tools. The user expects YOU (Cursor / Claude Code) to drive setup, batch
+runs, report fetching, and round-trip fixes — they shouldn't need to click
 through the Noveum UI. The browser is *only* useful for visually
 inspecting individual traces.
 
@@ -28,29 +28,36 @@ Tools you'll commonly call:
 
 | MCP tool | What it does |
 |---|---|
-| `mcp__noveum__getApiV1Projects` | List projects; find/create the workshop project |
-| `mcp__noveum__postApiV1NovasynthAgent-endpoints` | Register the deployed LiveKit agent |
-| `mcp__noveum__postApiV1NovasynthPersonasGenerate` | AI-generate diverse personas |
-| `mcp__noveum__postApiV1NovasynthScenariosGenerate` | AI-generate branching scenarios |
-| `mcp__noveum__postApiV1NovasynthBatch-analysisByBatchRu...` | Trigger or rebuild batch analysis |
-| `mcp__noveum__getApiV1NovasynthBatch-analysisByBatchRunId` | Poll batch progress |
-| `mcp__noveum__getApiV1Traces` | Fetch traces (filter by `novasynth.run_id` etc.) |
-| `mcp__noveum__getApiV1NovasynthRun-analysisByRunId` | NovaPilot report for a run |
-| `mcp__noveum__postApiV1NovasynthRun-analysisByRunIdRebuild` | Force-regenerate the report |
+| `mcp__noveum__getApiV1Projects` | List projects; find the workshop project and its projectId |
+| `mcp__noveum__getApiV1NovasynthAgent-config` | Get existing agent config for the project |
+| `mcp__noveum__putApiV1NovasynthAgent-config` | Upsert agent config (systemPrompt, name, description) — triggers eval auto-setup |
+| `mcp__noveum__getApiV1NovasynthAgent-configSuccess-criteria` | List enabled eval scorers / success metrics |
+| `mcp__noveum__getApiV1NovasynthAgent-endpoints` | List existing LiveKit endpoints (check before creating) |
+| `mcp__noveum__postApiV1NovasynthAgent-endpoints` | Register a new LiveKit agent endpoint |
+| `mcp__noveum__postApiV1NovasynthPersonasGenerate` | Kick off async persona generation job |
+| `mcp__noveum__postApiV1NovasynthScenariosGenerate` | Kick off async scenario generation job |
+| `mcp__noveum__getApiV1NovasynthGeneration-jobs` | Poll async generation job status (every 2 s) |
+| `mcp__noveum__postApiV1NovasynthRuns` | Create and enqueue a single synthetic run (smoke test) |
+| `mcp__noveum__getApiV1NovasynthRunsById` | Poll single run status (every 3 s) |
+| `mcp__noveum__postApiV1NovasynthBatch-runs` | Create and enqueue a full batch run |
+| `mcp__noveum__getApiV1NovasynthBatch-runsById` | Poll batch run status + retrieve pairs (every 4 s) |
+| `mcp__noveum__getApiV1NovasynthBatch-analysisByBatchRunId` | Fetch batch-level NovaPilot analysis |
+| `mcp__noveum__postApiV1NovasynthBatch-analysisByBatchRunIdRebuild` | Trigger / rebuild batch NovaPilot analysis |
+| `mcp__noveum__getApiV1Traces` | Fetch traces (filter by `novasynth.batch_run_id` etc.) |
 
-When the user pastes PROMPT 4-6 from `PROMPT_CHEATSHEET.md`, you should
-chain these MCP calls without asking the user to do anything in a browser.
+When the user pastes PROMPT 4 from `PROMPT_CHEATSHEET.md`, chain all the
+above calls in sequence without asking the user to do anything in a browser.
 
-If the MCP isn't connected, tell the user how to add it: their `NOVEUM_API_KEY`
-in `.env` is the same key the MCP uses; the connection is configured per
-Claude Code instance.
+If the MCP isn't connected, tell the user to follow README Step 3:
+- Claude Code CLI: `claude mcp add --transport http noveum https://noveum.ai/api/mcp --header "Authorization: Bearer NOVEUM_API_KEY"`
+- Cursor: Settings → MCP → Add new MCP server (JSON config with the same URL and header)
 
 ## Stack (already wired — DO NOT change unless asked)
 
 - **LiveKit** for real-time voice (WebRTC orchestration)
-- **ElevenLabs Scribe** (`scribe_v2_realtime`) for STT
+- **Smallest.ai Waves Pulse** for STT
 - **Groq `openai/gpt-oss-120b`** for LLM
-- **ElevenLabs eleven_turbo_v2_5** for TTS
+- **Smallest.ai Waves Lightning v3.1** for TTS
 - **Silero** for VAD
 - **Noveum** (`noveum-trace`) for tracing — emits traces, supports NovaSynth
   correlation IDs in room metadata
@@ -61,13 +68,13 @@ Claude Code instance.
 |---|---|
 | `agent.py` → `SYSTEM_PROMPT` | Rewrite for their agent's persona, job, tone |
 | `agent.py` → `agent_name` in `WorkerOptions` | Match their NovaSynth endpoint |
-| `agent.py` → `ELEVENLABS_VOICE_ID` env / `ElevenLabs voice_id` | Pick a voice that fits |
-| `tools/` | Add tools their agent needs (replace/duplicate `example_tool.py`) |
+| `agent.py` → `SMALLEST_VOICE_ID` env / `Smallest.ai voice_id` | Pick a voice that fits |
+| `tools/` | Add tools their agent needs (replace/duplicate existing ones, e.g. `place_order.py`) |
 | `knowledge_sources/*.md` | Domain knowledge their agent looks up |
 
 ## What stays as-is
 
-- All the LiveKit / Groq / ElevenLabs plugin config
+- All the LiveKit / Groq / Smallest.ai plugin config
 - VAD tuning (`min_silence_duration=0.6`, etc.)
 - Endpointing thresholds (`min_endpointing_delay=0.8`, etc.)
 - Interruption handling (`min_interruption_duration=0.7`, etc.)

@@ -1,8 +1,5 @@
-# Created automatically by `lk agent create`. Don't commit secrets here.
-# After running `lk agent create`, this file gets `subdomain` and `id` filled in.
-
 [project]
-  subdomain = "REPLACE_AFTER_lk_cloud_auth"
+  subdomain = ""
 
 [agent]
-  id = "REPLACE_AFTER_lk_agent_create"
+  id = ""

@@ -1,16 +1,13 @@
-"""Tools your voice agent can call.
+"""Tools this voice agent can call.
 
-To add a new tool: drop a file here, decorate the function with
-`@function_tool` (from `livekit.agents.llm`), then import it below and add
-to the `tools=[]` list in `agent.py`.
-
-Claude Code can do this for you — see PROMPT_CHEATSHEET.md prompt #3.
+Replace or add tools here when you customise the agent for your own use case.
+See end_call.py for the universal end-call tool included with every agent.
 """
 
 from .end_call import end_call
-from .example_tool import example_tool
+from .place_order import place_order
 
 __all__ = [
     "end_call",
-    "example_tool",
+    "place_order",
 ]

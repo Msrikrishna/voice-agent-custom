@@ -3,7 +3,7 @@
 A friendly voice agent for a SF pizzeria called "Tony's". Takes orders,
 quotes prices, confirms delivery address.
 
-## Claude Code prompt to use
+## Cursor prompt (paste as PROMPT 2)
 
 Paste this as PROMPT 2 from `PROMPT_CHEATSHEET.md`:
 
@@ -28,8 +28,8 @@ Knowledge to add to knowledge_sources/:
 - menu.md (pizzas with sizes/prices, classic toppings, sides, drinks)
 - delivery-zones.md (which SF neighborhoods, delivery time, fees)
 
-Voice ID: pNInz6obpgDQGcFmaJgB (default Adam) — or pick a friendlier voice
-from https://elevenlabs.io/voice-library and update ELEVENLABS_VOICE_ID.
+Voice: "sophia" (default, warm female) — or pick a different voice from
+the Smallest.ai console (console.smallest.ai) and update SMALLEST_VOICE_ID.
 
 agent_name: "tonys-pizza"
 

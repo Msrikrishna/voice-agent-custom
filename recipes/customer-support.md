@@ -3,7 +3,7 @@
 A voice agent for handling tier-1 customer support. Answers FAQs, escalates
 hard problems to humans, captures contact info.
 
-## Claude Code prompt
+## Cursor prompt (paste as PROMPT 2)
 
 ```
 I want to turn this generic voice agent into a customer support agent for

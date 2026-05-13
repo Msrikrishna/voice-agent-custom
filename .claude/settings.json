@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('/Users/shashank/Projects/voice-agent-workshop-starter/agent.py'\\).read\\(\\)\\); print\\('agent.py parses OK'\\)\")",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('/Users/shashank/Projects/voice-agent-workshop-starter/agent.py'\\).read\\(\\)\\); ast.parse\\(open\\('/Users/shashank/Projects/voice-agent-workshop-starter/tools/end_call.py'\\).read\\(\\)\\); print\\('OK'\\)\")",
+      "Bash(python3 -c ' *)",
+      "WebFetch(domain:docs.livekit.io)",
+      "Bash(curl -fsSL https://raw.githubusercontent.com/livekit/agents/main/examples/voice_agents/basic_agent.py)",
+      "Bash(/Users/shashank/Projects/voice-agent-workshop-starter/.venv/bin/pip list *)",
+      "Bash(pip list *)",
+      "Bash(/Users/shashank/Projects/voice-agent-workshop-starter/.venv/bin/python -c ' *)",
+      "Bash(awk -F= '/^[A-Z_]+=/{key=$1; val=$2; if \\(val==\"\"\\) print key \"= [EMPTY]\"; else print key \"= [SET, \" length\\(val\\) \" chars]\"}' .env)",
+      "WebFetch(domain:pypi.org)",
+      "Bash(/Users/shashank/Projects/voice-agent-workshop-starter/.venv/bin/pip freeze *)",
+      "Bash(/Users/shashank/Projects/voice-agent-workshop-starter/.venv/bin/python --version)",
+      "Bash(curl -s https://pypi.org/pypi/livekit-plugins-elevenlabs/json)",
+      "Bash(/Users/shashank/Projects/voice-agent-workshop-starter/.venv/bin/pip download *)",
+      "Bash(tar -xzf /tmp/lk_el_old/livekit_plugins_elevenlabs-1.3.12.tar.gz -C /tmp/lk_el_old/)",
+      "Bash(tar -xzf /tmp/lk_el_v1/livekit_plugins_elevenlabs-1.0.0.tar.gz -C /tmp/lk_el_v1/)",
+      "Bash(tar -xzf /tmp/lk_el_v08/livekit_plugins_elevenlabs-0.8.0.tar.gz -C /tmp/lk_el_v08/)",
+      "Bash(rm -rf /tmp/test_old_plugin)",
+      "Bash(/Users/shashank/Projects/voice-agent-workshop-starter/.venv/bin/python -m venv /tmp/test_old_plugin)",
+      "Bash(/tmp/test_old_plugin/bin/pip install *)",
+      "Bash(/tmp/test_old_plugin/bin/python -c ' *)",
+      "WebFetch(domain:smallest.ai)",
+      "Bash(curl -s https://pypi.org/pypi/livekit-plugins-deepgram/json)",
+      "Bash(rm -rf /tmp/test_dg)",
+      "Bash(/Users/shashank/Projects/voice-agent-workshop-starter/.venv/bin/python -m venv /tmp/test_dg)",
+      "Bash(/tmp/test_dg/bin/pip install *)",
+      "Bash(/tmp/test_dg/bin/python -c ' *)",
+      "Bash(/Users/shashank/Projects/voice-agent-workshop-starter/.venv/bin/python -c \"import ast; ast.parse\\(open\\('agent.py'\\).read\\(\\)\\); print\\('agent.py parses OK'\\)\")",
+      "Bash(/tmp/test_dg/bin/pip show *)",
+      "Bash(/Users/shashank/Projects/voice-agent-workshop-starter/.venv/bin/python /tmp/test_strip.py)"
+    ],
+    "additionalDirectories": [
+      "/tmp",
+      "/private/tmp"
+    ]
+  }
+}

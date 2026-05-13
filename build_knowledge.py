@@ -2,8 +2,8 @@
 
 This is a stripped-down version of a real RAG pipeline — just enough so your
 agent can search local notes for facts at call time. For the workshop you'll
-likely just edit `knowledge_sources/example.md` (or have Claude Code generate
-new files) and re-run this.
+likely edit the files in `knowledge_sources/` (or have Cursor generate new
+ones) and re-run this.
 
 Output:
     knowledge/index.json   — list of {id, title, summary, body}

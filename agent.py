@@ -1,18 +1,18 @@
 """Voice AI Agent — Workshop Starter.
 
-A working LiveKit voice agent on the fastest open stack:
+A working LiveKit voice agent on a fully free-tier open stack:
     LLM:  Groq openai/gpt-oss-120b
-    STT:  Deepgram nova-2
-    TTS:  ElevenLabs eleven_turbo_v2_5
+    STT:  Smallest.ai Waves Pulse
+    TTS:  Smallest.ai Waves Lightning v3.1
     VAD:  Silero (tuned for natural conversation)
 
 Tracing via Noveum is wired in so you can debug latency and quality from
 minute one. NovaSynth correlation IDs are forwarded through room metadata so
 synthetic test runs from Noveum show up correlated in your traces.
 
-# CUSTOMIZE THIS AGENT WITH CLAUDE CODE
+# CUSTOMIZE THIS AGENT WITH CURSOR
 The only thing you need to change is `SYSTEM_PROMPT` below — and optionally
-add tools in the `tools/` directory. Open Claude Code and paste a prompt from
+add tools in the `tools/` directory. Open Cursor and paste a prompt from
 `PROMPT_CHEATSHEET.md`. See `recipes/` for example product ideas.
 
 Run locally:
@@ -29,6 +29,8 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
+from collections.abc import AsyncIterable
 from pathlib import Path
 from typing import Any
 
@@ -39,12 +41,20 @@ from livekit.agents import (
     AgentSession,
     JobContext,
     JobProcess,
+    MetricsCollectedEvent,
     RoomInputOptions,
     WorkerOptions,
+    metrics,
+    text_transforms,
 )
-from livekit.plugins import elevenlabs, groq, silero
+from livekit.agents.voice.background_audio import (
+    AudioConfig,
+    BackgroundAudioPlayer,
+    BuiltinAudioClip,
+)
+from livekit.plugins import groq, silero, smallestai
 
-from tools import example_tool, end_call
+from tools import end_call, place_order
 
 logger = logging.getLogger("voice_workshop.agent")
 
@@ -56,10 +66,42 @@ _noveum_log_level = os.environ.get("NOVEUM_TRACE_LOG", "INFO").upper()
 for _name in ("noveum_trace", "noveum_trace.transport", "noveum_trace.core"):
     logging.getLogger(_name).setLevel(_noveum_log_level)
 
-# The ElevenLabs LiveKit plugin reads ELEVEN_API_KEY (not ELEVENLABS_API_KEY).
-# Mirror so both names work.
-if not os.environ.get("ELEVEN_API_KEY") and os.environ.get("ELEVENLABS_API_KEY"):
-    os.environ["ELEVEN_API_KEY"] = os.environ["ELEVENLABS_API_KEY"]
+# LiveKit Cloud's built-in session-recording feature is not available on the
+# free tier. Silence its 401 spam so it doesn't clutter workshop logs.
+logging.getLogger("opentelemetry.sdk.trace.export").setLevel(logging.CRITICAL)
+logging.getLogger("opentelemetry.sdk.logs.export").setLevel(logging.CRITICAL)
+logging.getLogger("opentelemetry.sdk.metrics.export").setLevel(logging.CRITICAL)
+
+
+class _DropFreeTierObservabilityNoise(logging.Filter):
+    """Drop free-tier-only 401 errors from `livekit.agents`.
+
+    LiveKit Cloud's hosted observability/recording endpoints return 401
+    on the free tier. The framework logs a multi-line traceback on every
+    session close. The session itself is healthy — we just don't have
+    access to the paid feature. This filter drops only those specific
+    messages and leaves every other livekit.agents log intact.
+    """
+
+    _NEEDLES = (
+        "failed to upload the session report",
+        "failed to save session report",
+    )
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        try:
+            msg = record.getMessage()
+        except Exception:
+            return True
+        return not any(needle in msg for needle in self._NEEDLES)
+
+
+logging.getLogger("livekit.agents").addFilter(_DropFreeTierObservabilityNoise())
+
+# The Smallest.ai LiveKit plugin reads SMALLEST_API_KEY. Accept the
+# verbose SMALLEST_AI_API_KEY alias too so users don't get tripped up.
+if not os.environ.get("SMALLEST_API_KEY") and os.environ.get("SMALLEST_AI_API_KEY"):
+    os.environ["SMALLEST_API_KEY"] = os.environ["SMALLEST_AI_API_KEY"]
 
 try:
     import noveum_trace
@@ -74,38 +116,62 @@ except ImportError as exc:  # pragma: no cover
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# CUSTOMIZE ME — this is what you'll change with Claude Code in the workshop
+# CUSTOMIZE ME — this is what you'll change with Cursor in the workshop
 # ─────────────────────────────────────────────────────────────────────────────
 SYSTEM_PROMPT = """\
-You are a friendly, helpful voice AI assistant.
+You are Alex, a friendly AI voice assistant at Sunrise Café.
+You help customers hear about the menu and place orders.
 
-# AI DISCLOSURE — non-negotiable
-- In your VERY FIRST turn, identify yourself as an AI assistant.
-- If asked "are you a bot/AI/real person", confirm immediately and offer
-  to keep the conversation brief or hand off to a human.
+# AI DISCLOSURE
+- In your opening turn, mention you are an AI assistant.
+- If asked directly, confirm in one sentence.
 
-# YOUR PERSONALITY
-- Warm and concise. You are on a phone call.
-- One thought per turn. Then pause and listen.
-- If unsure about something, say so. Do not invent facts.
+# VOICE OUTPUT — STRICT
+- ONE sentence per turn. After the first sentence ends, STOP.
+  The customer speaks next.
+- No markdown, lists, code, headings, or emoji.
+- Numbers as words: "four fifty", "ten to fifteen minutes", not "$4.50".
+- Never write parentheticals or placeholders like "[item]" or "(note: ...)".
+  The voice engine reads them literally.
 
-# VOICE OUTPUT RULES — CRITICAL
-- 1-2 short sentences per turn. NEVER long monologues.
-- NEVER produce markdown, tables, bullet lists, code blocks, or headings.
-- Numbers spoken: "twenty-five dollars", "two thousand", "fifteen percent".
-- Never narrate your actions ("let me check"). Just answer or ask.
+# CALL FLOW
+1. Greet warmly + AI disclosure. Ask what you can help with today.
+2. Answer menu questions using your knowledge base.
+3. When the customer tells you what they want, confirm the items back
+   and ask if they are ready to order.
+4. Once they confirm, call `place_order` with all items and quantities.
+5. Tell them the order is placed. Ask if there is anything else.
+6. When they say goodbye, call `end_call`.
 
-# OPENING (first 30 seconds)
-1. Greet warmly + AI disclosure: "Hi, I'm an AI assistant. How can I help?"
-2. Pause. Listen. Don't dump your whole pitch.
-
-# WHEN TO USE TOOLS
-- Use `example_tool` whenever the user asks about [REPLACE WITH YOUR DOMAIN].
-- Use `end_call` when: user says goodbye / call done / "remove me" / call >4 min.
-
-# REPLACE EVERYTHING ABOVE WITH YOUR AGENT'S PROMPT
-Open Claude Code and paste PROMPT 2 from PROMPT_CHEATSHEET.md.
+# TOOLS
+- `place_order` — call once the customer confirms their complete order
+  out loud. Pass every item and quantity exactly as stated.
+- `end_call` — only after the customer has clearly said goodbye or
+  indicated they are done. Never call while they are still ordering.
 """
+
+
+# Stage-direction stripper for TTS. The LLM occasionally emits things like
+# "(Note awaiting user)" or "[email]" — TTS reads those literally and the
+# user hears "open paren note awaiting user close paren". This transform
+# drops anything in parentheses or square brackets before it reaches TTS.
+_STAGE_DIRECTION_RE = re.compile(r"\s*[(\[][^)\]]*[)\]]\s*")
+
+
+async def _strip_stage_directions(text_stream: AsyncIterable[str]) -> AsyncIterable[str]:
+    buffer = ""
+    async for chunk in text_stream:
+        buffer += chunk
+        # Flush only at safe boundaries so we don't break mid-paren.
+        if not ("(" in buffer or "[" in buffer) or (
+            "(" in buffer and ")" in buffer
+        ) or ("[" in buffer and "]" in buffer):
+            cleaned = _STAGE_DIRECTION_RE.sub(" ", buffer)
+            if cleaned:
+                yield cleaned
+            buffer = ""
+    if buffer:
+        yield _STAGE_DIRECTION_RE.sub(" ", buffer)
 
 
 def prewarm(job: JobProcess) -> None:
@@ -157,6 +223,8 @@ def _extract_novasynth_metadata(
 async def entrypoint(ctx: JobContext) -> None:
     await ctx.connect()
 
+    ctx.log_context_fields = {"room": getattr(ctx.room, "name", "<unknown>")}
+
     room_meta = _parse_room_metadata(ctx)
     novasynth_attrs = _extract_novasynth_metadata(ctx, room_meta)
     novasynth_mode = str(room_meta.get("novasynth_mode") or "").lower()
@@ -188,16 +256,42 @@ async def entrypoint(ctx: JobContext) -> None:
 
     vad = ctx.proc.userdata["vad"]
 
+    # Resolve the Smallest.ai API key once and pass it directly. Accept
+    # either SMALLEST_API_KEY (canonical) or SMALLEST_AI_API_KEY (alias).
+    _smallest_key = (
+        os.environ.get("SMALLEST_API_KEY")
+        or os.environ.get("SMALLEST_AI_API_KEY")
+        or ""
+    ).strip()
+    if not _smallest_key:
+        raise RuntimeError(
+            "SMALLEST_API_KEY is not set. Get one at "
+            "https://console.smallest.ai/apikeys and add it to .env."
+        )
+
     session = AgentSession(
         vad=vad,
-        stt=elevenlabs.STT(model_id="scribe_v2_realtime", language_code="en"),
+        # STT — Smallest.ai Waves Pulse. Set SMALLEST_STT_LANGUAGE=multi
+        # for automatic detection across 39 supported languages.
+        stt=smallestai.STT(
+            api_key=_smallest_key,
+            language=os.environ.get("SMALLEST_STT_LANGUAGE", "en"),
+        ),
         llm=groq.LLM(
             model=os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b"),
             temperature=float(os.environ.get("GROQ_TEMPERATURE", "0.4")),
+            # Hard cap per turn. ~80 tokens = one sentence + any tool-call JSON.
+            # Enforces the voice rule even when the LLM tries to monologue.
+            # Increase via GROQ_MAX_COMPLETION_TOKENS if your agent legitimately
+            # needs longer responses.
+            max_completion_tokens=int(os.environ.get("GROQ_MAX_COMPLETION_TOKENS", "80")),
         ),
-        tts=elevenlabs.TTS(
-            model=os.environ.get("ELEVENLABS_MODEL", "eleven_turbo_v2_5"),
-            voice_id=os.environ.get("ELEVENLABS_VOICE_ID", "pNInz6obpgDQGcFmaJgB"),
+        # TTS — Smallest.ai Waves Lightning v3.1. HTTP-based, ~100ms TTFB,
+        # 80+ voices. Override SMALLEST_VOICE_ID / SMALLEST_TTS_MODEL in .env.
+        tts=smallestai.TTS(
+            api_key=_smallest_key,
+            model=os.environ.get("SMALLEST_TTS_MODEL", "lightning-v3.1"),
+            voice_id=os.environ.get("SMALLEST_VOICE_ID", "sophia"),
         ),
         # Tuned to feel natural — bumped up from defaults so the agent doesn't
         # cut users off mid-sentence and false barge-ins are rare.
@@ -206,8 +300,45 @@ async def entrypoint(ctx: JobContext) -> None:
         min_interruption_duration=0.7,
         min_interruption_words=3,
         false_interruption_timeout=2.0,
+        resume_false_interruption=True,
         discard_audio_if_uninterruptible=True,
+        # preemptive_generation halves perceived latency but doubles LLM
+        # token usage per turn. With Groq's on-demand 8k TPM cap, that
+        # pushes every conversation into a 429. Disabled to keep us under
+        # the cap; re-enable on a paid tier.
+        preemptive_generation=False,
+        # Strict cap: one tool call per user turn, then the LLM must
+        # produce text before any further tool call. Prevents the model
+        # chaining tools within one response turn.
+        max_tool_steps=1,
+        # Defense-in-depth against markdown / emoji / stage directions
+        # the LLM occasionally emits. Custom regexes strip the worst
+        # offenders we observed in real runs ("(Note awaiting user)",
+        # "[email]", etc.). Plus pronunciation hints for product names.
+        tts_text_transforms=[
+            "filter_emoji",
+            "filter_markdown",
+            # Add text_transforms.replace({"YourBrand": "Your-Brand"}) here
+            # if the TTS engine mispronounces a product or brand name.
+            _strip_stage_directions,
+        ],
     )
+
+    # Per-turn metrics (LLM tokens, STT/TTS latency) and a session-end summary.
+    usage_collector = metrics.UsageCollector()
+
+    @session.on("metrics_collected")
+    def _on_metrics_collected(ev: MetricsCollectedEvent) -> None:
+        metrics.log_metrics(ev.metrics)
+        usage_collector.collect(ev.metrics)
+
+    async def _log_session_usage(_reason: str) -> None:
+        try:
+            logger.info("session usage summary: %s", usage_collector.get_summary())
+        except Exception as exc:  # pragma: no cover
+            logger.warning("failed to log session usage: %s", exc)
+
+    ctx.add_shutdown_callback(_log_session_usage)
 
     tracing_manager = None
     if use_noveum and setup_livekit_tracing is not None:
@@ -231,12 +362,26 @@ async def entrypoint(ctx: JobContext) -> None:
         agent=Agent(
             instructions=SYSTEM_PROMPT,
             tools=[
-                example_tool,
+                place_order,
                 end_call,
             ],
         ),
         room_input_options=RoomInputOptions(delete_room_on_close=True),
     )
+
+    # Soft keyboard-typing "thinking" sound to mask LLM generation latency.
+    # Disabled in NovaSynth text mode so synthetic-run audio captures stay clean.
+    if not is_text_mode:
+        try:
+            background_audio = BackgroundAudioPlayer(
+                thinking_sound=[
+                    AudioConfig(BuiltinAudioClip.KEYBOARD_TYPING, volume=0.6),
+                    AudioConfig(BuiltinAudioClip.KEYBOARD_TYPING2, volume=0.6),
+                ],
+            )
+            await background_audio.start(room=ctx.room, agent_session=session)
+        except Exception as exc:  # pragma: no cover
+            logger.warning("background audio failed to start: %s", exc)
 
     # Forward NovaSynth correlation IDs onto the trace so synthetic batch runs
     # are filterable by novasynth.run_id in the Noveum dashboard.
@@ -255,8 +400,9 @@ async def entrypoint(ctx: JobContext) -> None:
     # Open with a warm greeting + AI disclosure.
     await session.generate_reply(
         instructions=(
-            "Greet the user warmly. Identify yourself as an AI assistant. "
-            "Then ask one short open question. ONE sentence per beat, then pause."
+            "Greet the customer warmly as Alex from Sunrise Café. Identify "
+            "yourself as an AI assistant in the same sentence. Ask what you "
+            "can help them with today. One sentence, then pause and listen."
         )
     )
 
@@ -268,6 +414,6 @@ if __name__ == "__main__":
             prewarm_fnc=prewarm,
             # Must match the AgentEndpoint name in NovaSynth (Noveum UI) so
             # synthetic dispatch runs hit this worker.
-            agent_name="voice-workshop-agent",
+            agent_name="workshop-starter-agent",
         )
     )

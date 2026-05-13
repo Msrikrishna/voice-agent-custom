@@ -3,7 +3,7 @@
 A voice agent that hosts a Pokemon trivia game. Asks questions, tracks
 score, gives encouragement.
 
-## Claude Code prompt
+## Cursor prompt (paste as PROMPT 2)
 
 ```
 I want to turn this generic voice agent into a Pokemon trivia game host.

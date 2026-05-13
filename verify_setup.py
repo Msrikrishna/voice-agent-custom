@@ -62,7 +62,7 @@ REQUIRED_VARS = {
     "LIVEKIT_API_KEY": "LiveKit Cloud → Settings → Keys",
     "LIVEKIT_API_SECRET": "LiveKit Cloud → Settings → Keys",
     "GROQ_API_KEY": "https://console.groq.com",
-    "ELEVENLABS_API_KEY": "https://elevenlabs.io → Profile → API Key",
+    "SMALLEST_API_KEY": "https://console.smallest.ai/apikeys",
     "NOVEUM_API_KEY": "https://noveum.ai → Settings → API Keys",
 }
 
@@ -115,26 +115,37 @@ def check_groq() -> None:
         _record_fail(f"Groq request failed: {exc}")
 
 
-def check_elevenlabs() -> None:
+def check_smallestai() -> None:
     try:
         import requests
     except ImportError:
         return
-    key = (os.environ.get("ELEVENLABS_API_KEY") or "").strip()
+    key = (
+        os.environ.get("SMALLEST_API_KEY")
+        or os.environ.get("SMALLEST_AI_API_KEY")
+        or ""
+    ).strip()
     if not key:
         return
     try:
+        # Hit the voices list endpoint as a cheap auth probe.
         r = requests.get(
-            "https://api.elevenlabs.io/v1/user",
-            headers={"xi-api-key": key},
+            "https://api.smallest.ai/waves/v1/lightning-v3.1/voices",
+            headers={"Authorization": f"Bearer {key}"},
             timeout=15,
         )
         if r.status_code == 200:
-            ok("ElevenLabs API reachable + key valid (STT + TTS)")
+            ok("Smallest.ai API reachable + key valid (STT + TTS)")
+        elif r.status_code in (401, 403):
+            _record_fail(
+                "Smallest.ai API reachable but key rejected "
+                f"(HTTP {r.status_code}). Re-copy from "
+                "https://console.smallest.ai/apikeys."
+            )
         else:
-            _record_fail(f"ElevenLabs returned HTTP {r.status_code}: {r.text[:120]}")
+            _record_fail(f"Smallest.ai returned HTTP {r.status_code}: {r.text[:120]}")
     except Exception as exc:
-        _record_fail(f"ElevenLabs request failed: {exc}")
+        _record_fail(f"Smallest.ai request failed: {exc}")
 
 
 def check_noveum() -> None:
@@ -187,7 +198,7 @@ def main() -> int:
     print()
     print("--- Live API checks ---")
     check_groq()
-    check_elevenlabs()
+    check_smallestai()
     check_noveum()
     print()
     print("--- Tooling ---")

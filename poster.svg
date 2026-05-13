@@ -80,8 +80,8 @@
 
   <!-- Stack pill row -->
   <g font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="20" letter-spacing="4" text-anchor="middle">
-    <text x="540" y="890" fill="#aaaaaa">LIVEKIT · GROQ · DEEPGRAM</text>
-    <text x="540" y="925" fill="#aaaaaa">ELEVENLABS · NOVEUM · CLAUDE CODE</text>
+    <text x="540" y="890" fill="#aaaaaa">LIVEKIT · GROQ · SMALLEST.AI</text>
+    <text x="540" y="925" fill="#aaaaaa">SILERO · NOVEUM · CURSOR</text>
   </g>
 
   <!-- Sub-500ms badge -->

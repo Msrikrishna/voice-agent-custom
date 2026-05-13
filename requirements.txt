@@ -1,8 +1,8 @@
-livekit-agents>=1.5.0
-livekit-plugins-silero
-livekit-plugins-groq
-livekit-plugins-elevenlabs
-noveum-trace[livekit]
-aiohttp
-python-dotenv
-requests
+livekit-agents==1.5.8
+livekit-plugins-silero==1.5.8
+livekit-plugins-groq==1.5.8
+livekit-plugins-smallestai==1.5.8
+noveum-trace[livekit]==1.5.13
+aiohttp==3.13.5
+python-dotenv==1.2.2
+requests==2.34.0

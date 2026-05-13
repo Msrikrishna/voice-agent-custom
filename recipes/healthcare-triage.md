@@ -5,7 +5,7 @@ of care: emergency, urgent care, or primary care.
 
 > ⚠️ This is a workshop demo. Do NOT use as actual medical advice.
 
-## Claude Code prompt
+## Cursor prompt (paste as PROMPT 2)
 
 ```
 I want to turn this generic voice agent into a healthcare triage agent for
