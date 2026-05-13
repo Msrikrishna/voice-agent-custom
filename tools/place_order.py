@@ -22,6 +22,7 @@ async def place_order(items: str) -> str:
             Example: "1 flat white, 2 blueberry muffins".
     """
     logger.info("place_order: %r", items)
+    print(f"[place_order] items={items!r}")
     return (
         f"Order placed: {items}. "
         "Tell the customer their order is confirmed and ask if there is anything else."

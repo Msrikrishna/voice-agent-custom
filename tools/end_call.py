@@ -75,9 +75,9 @@ def _last_user_text(run_ctx: RunContext) -> str | None:
 @function_tool
 async def end_call(run_ctx: RunContext, reason: str) -> str:
     """End the call. ONE TRIGGER ONLY:
-    - The user's MOST RECENT turn contained a clear goodbye / DNC phrase.
+    - The user's MOST RECENT turn contained a clear goodbye phrase.
       Examples: "bye", "thanks bye", "we're done", "I'm good", "that's
-      all", "talk later", "stop calling me", "remove me", "don't call".
+      all", "talk later", "gotta go", "hang up", "end the call".
 
     There is no other trigger. The tool programmatically inspects the
     user's last message; if it does not contain a goodbye phrase, the
@@ -125,7 +125,7 @@ async def end_call(run_ctx: RunContext, reason: str) -> str:
             "REFUSED: do not end the call. The user has not said goodbye in "
             "their most recent turn. Ignore your previous plan to end the "
             "call — continue the conversation. Answer their question, ask "
-            "the next field you need, or wait for them to speak."
+            "what else they need, or wait for them to speak."
         )
 
     logger.info("end_call invoked (reason=%s)", safe_reason[:80])

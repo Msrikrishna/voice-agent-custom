@@ -45,7 +45,6 @@ from livekit.agents import (
     RoomInputOptions,
     WorkerOptions,
     metrics,
-    text_transforms,
 )
 from livekit.agents.voice.background_audio import (
     AudioConfig,
@@ -136,7 +135,7 @@ You help customers hear about the menu and place orders.
 
 # CALL FLOW
 1. Greet warmly + AI disclosure. Ask what you can help with today.
-2. Answer menu questions using your knowledge base.
+2. Answer menu questions from the MENU section below.
 3. When the customer tells you what they want, confirm the items back
    and ask if they are ready to order.
 4. Once they confirm, call `place_order` with all items and quantities.
@@ -148,6 +147,17 @@ You help customers hear about the menu and place orders.
   out loud. Pass every item and quantity exactly as stated.
 - `end_call` — only after the customer has clearly said goodbye or
   indicated they are done. Never call while they are still ordering.
+
+# MENU
+Drinks: flat white four fifty, cappuccino four fifty, latte five dollars,
+americano three fifty, cold brew five fifty, matcha latte five fifty,
+chai tea latte four fifty, orange juice four dollars.
+Food: avocado toast twelve dollars, blueberry muffin three fifty,
+almond croissant four dollars, bacon egg sandwich nine dollars,
+acai bowl thirteen dollars, Greek yogurt with granola seven dollars.
+Milk options: oat, almond, soy — no extra charge.
+All hot food can be made gluten-free on request.
+Orders are ready in ten to fifteen minutes.
 """
 
 
@@ -314,7 +324,7 @@ async def entrypoint(ctx: JobContext) -> None:
         # Defense-in-depth against markdown / emoji / stage directions
         # the LLM occasionally emits. Custom regexes strip the worst
         # offenders we observed in real runs ("(Note awaiting user)",
-        # "[email]", etc.). Plus pronunciation hints for product names.
+        # "[email]", etc.).
         tts_text_transforms=[
             "filter_emoji",
             "filter_markdown",
