@@ -62,6 +62,8 @@ Open **Cursor Settings → MCP → Add new MCP server** and paste:
 
 Save, then click the **reload** button next to the server (or fully restart Cursor). Confirm the green connected status.
 
+Reload MCP if NovaPilot or other Noveum tools are missing — they come from the live OpenAPI spec.
+
 ### Step 4 — Verify all keys work
 
 ```bash
