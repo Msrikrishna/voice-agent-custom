@@ -18,11 +18,14 @@ where they will:
 
 ## The Noveum MCP — your primary integration surface
 
-The Noveum MCP exposes the entire NovaSynth + traces + NovaPilot API as
-tools. The user expects YOU (Cursor / Claude Code) to drive setup, batch
+The Noveum MCP exposes the merged Noveum REST OpenAPI surface as tools
+(NovaSynth, traces, datasets, eval jobs, NovaPilot, telemetry, and related
+routes). The user expects YOU (Cursor / Claude Code) to drive setup, batch
 runs, report fetching, and round-trip fixes — they shouldn't need to click
 through the Noveum UI. The browser is *only* useful for visually
 inspecting individual traces.
+
+Reload the MCP server if tools look stale — tools are generated from Noveum's OpenAPI (including NovaPilot).
 
 Tools you'll commonly call:
 

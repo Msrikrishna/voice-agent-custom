@@ -119,7 +119,7 @@ For workshop purposes: do A first to find the worst trace, then B to inspect it.
 
 Paste **PROMPT 7** to Cursor. It does the full loop:
 
-1. Calls `getApiV1NovasynthBatch-analysisByBatchRunId` to fetch (or `postApiV1NovasynthBatch-analysisByBatchRunIdRebuild` to rebuild) the NovaPilot batch report
+1. Calls `getApiV1NovasynthBatch-analysisByBatchRunId` to fetch (or `postApiV1NovasynthBatch-analysisByBatchRunIdRebuild` to rebuild) the batch NovaPilot analysis report
 2. Reads the failure-pattern recommendations
 3. Updates `SYSTEM_PROMPT` (or tools) in `agent.py` to address them
 4. Tells you the diff before applying
