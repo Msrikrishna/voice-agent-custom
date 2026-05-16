@@ -1,7 +1,5 @@
 [project]
-  # Your LiveKit Cloud project subdomain — found in LiveKit Cloud → Settings (e.g. "my-project-abc123")
-  subdomain = ""
+  subdomain = "test-audio-agent-94guqh6j"
 
 [agent]
-  # Filled in automatically after `lk agent create`, or copy from `lk agent list`
-  id = ""
+  id = "CA_G7kdBtJQQGL5"

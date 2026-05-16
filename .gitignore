@@ -9,3 +9,4 @@ knowledge/
 *.log
 .idea/
 .vscode/
+.claude/
