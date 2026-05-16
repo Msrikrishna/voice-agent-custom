@@ -17,9 +17,9 @@ async def place_order(items: str) -> str:
     or to check availability — only after explicit confirmation.
 
     Args:
-        items: Comma-separated list of items and quantities the customer
-            confirmed out loud.
-            Example: "1 flat white, 2 blueberry muffins".
+        items: Comma-separated list of items, sizes, and quantities the
+            customer confirmed out loud.
+            Example: "1 large pepperoni pizza, 1 medium margherita with extra cheese, 2 sodas".
     """
     logger.info("place_order: %r", items)
     print(f"[place_order] items={items!r}")

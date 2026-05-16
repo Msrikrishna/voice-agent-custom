@@ -1,24 +1,30 @@
-# Sunrise Café — Menu
+# Tony's Pizza — Menu
+
+## Pizzas (by size)
+- Small (10") — $12
+- Medium (14") — $16
+- Large (18") — $20
+
+## Classic pies (size price as above)
+- Margherita — tomato, mozzarella, basil
+- Pepperoni — pepperoni, mozzarella
+- Hawaiian — ham, pineapple, mozzarella
+- Veggie Supreme — mushroom, peppers, onion, olives
+- Meat Lovers — pepperoni, sausage, bacon, ham
+
+## Extra toppings — $2 each
+extra cheese, mushroom, olives, onion, peppers, sausage, anchovy, jalapeño
+
+## Sides
+- Garlic knots — $6
+- Caesar salad — $8
+- Wings (10pc, buffalo or BBQ) — $10
 
 ## Drinks
-- Flat white — $4.50
-- Cappuccino — $4.50
-- Latte — $5.00
-- Americano — $3.50
-- Cold brew — $5.50
-- Matcha latte — $5.50
-- Chai tea latte — $4.50
-- Orange juice (fresh) — $4.00
-
-## Food
-- Avocado toast — $12.00
-- Blueberry muffin — $3.50
-- Almond croissant — $4.00
-- Bacon egg sandwich — $9.00
-- Acai bowl — $13.00
-- Greek yogurt with granola — $7.00
+- Soda (Coke, Sprite, Diet Coke) — $3
+- Bottled water — $2
 
 ## Notes
-- Oat, almond, and soy milk available at no extra charge.
-- All hot food can be made gluten-free on request.
-- Orders are usually ready in ten to fifteen minutes.
+- Gluten-free crust available, +$3.
+- Pickup orders ready in 20–25 minutes.
+- We do not currently deliver — pickup only.
