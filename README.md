@@ -1,147 +1,84 @@
-# Voice AI Agent Workshop Starter
+# Voice Agent — Local Dev
 
-> A working LiveKit voice agent on **Groq + Smallest.ai + Noveum** — pre-wired with tracing, ready to be reshaped into your own product with **Cursor** in 3 hours.
+A LiveKit voice agent (Smallest.ai STT + TTS, Groq LLM) with a local
+browser-based dev console. No need to use the LiveKit playground —
+talk to your agent at `http://127.0.0.1:8080`, swap persona / voice /
+model / temperature per session from dropdowns.
 
-This is the starter repo for the **Vibe-Code a Voice AI Agent** workshop at Frontier Tower (Thu May 14, 2026, 4:30–7:30 PM PT). 🍕🍻 Pizza and drinks on us.
-
----
-
-## Setup — complete these 6 steps first
-
-Work through these at the start of the workshop. Step 1 (signups) may need a few minutes — start there while the intro is running.
-
-### Step 1 — Sign up for 4 services (all free tier)
-
-| Service | URL | What you need |
-|---------|-----|---------------|
-| [LiveKit Cloud](https://cloud.livekit.io) | cloud.livekit.io | Project URL + API Key + Secret → Settings → Keys |
-| [Groq](https://console.groq.com) | console.groq.com | API Key |
-| [Smallest.ai](https://console.smallest.ai/apikeys) | console.smallest.ai | API Key → API Keys (covers STT + TTS) |
-| [Noveum](https://noveum.ai) | noveum.ai | API Key → Settings → API Keys |
-
-### Step 2 — Clone, install, and fill in your keys
+## 1. Setup
 
 ```bash
-git clone <this-repo-url> voice-agent-workshop-starter
-cd voice-agent-workshop-starter
-
-python -m venv .venv && source .venv/bin/activate
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
-
-cp .env.example .env
-# open .env — paste in all 4 keys (comments in the file say exactly where each one lives)
+cp .env.example .env   # then fill in keys
 ```
 
-### Step 3 — Connect the Noveum MCP and restart
+Required `.env` keys: `LIVEKIT_URL`, `LIVEKIT_API_KEY`,
+`LIVEKIT_API_SECRET`, `GROQ_API_KEY`, `SMALLEST_API_KEY`,
+`NOVEUM_API_KEY`.
 
-Do this **before** running verify — the MCP must be connected before you start using Cursor for workshop prompts, and adding it requires a restart.
-
-**Claude Code CLI:**
-```bash
-claude mcp add --transport http noveum https://noveum.ai/api/mcp \
-  --header "Authorization: Bearer YOUR_NOVEUM_API_KEY"
-```
-Then restart your `claude` session.
-
-**Cursor:**
-
-Open **Cursor Settings → MCP → Add new MCP server** and paste:
-
-```json
-{
-  "mcpServers": {
-    "noveum": {
-      "url": "https://noveum.ai/api/mcp",
-      "headers": {
-        "Authorization": "Bearer YOUR_NOVEUM_API_KEY"
-      }
-    }
-  }
-}
-```
-
-Save, then click the **reload** button next to the server (or fully restart Cursor). Confirm the green connected status.
-
-Reload MCP if NovaPilot or other Noveum tools are missing — they come from the live OpenAPI spec.
-
-### Step 4 — Verify all keys work
+Sanity check:
 
 ```bash
 python verify_setup.py
 ```
 
-All checks must be green. If anything is red, fix it now.
-
-### Step 5 — Smoke test: run the starter agent and make a call
+Build the knowledge index from `knowledge_sources/`:
 
 ```bash
 python build_knowledge.py
+```
+
+## 2. Run locally — two terminals
+
+**Terminal A — agent worker (connects to LiveKit Cloud):**
+
+```bash
 python agent.py dev
 ```
 
-You should see `registered worker {agent_name: workshop-starter-agent, ...}`.
+Wait for `registered worker {agent_name: tonys-pizza-agent, ...}`.
 
-Open the **LiveKit Cloud console** → Agents → configure the session → set **Agent name** to `workshop-starter-agent` → **Save and start session**. Talk to it. If it responds, you're good.
-
-> You can also use [agents-playground.livekit.io](https://agents-playground.livekit.io) — paste `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` from your `.env`.
-
-### Step 6 — Install the LiveKit CLI and authenticate
+**Terminal B — local dev UI:**
 
 ```bash
-brew install livekit-cli
-lk cloud auth        # one-time browser OAuth
+python dev_ui/server.py
 ```
 
----
+Then open **http://127.0.0.1:8080** in your browser.
 
-## Workshop
+## 3. Using the dev UI
 
-Once all 6 setup steps are green, open **[WORKSHOP.md](WORKSHOP.md)** for the stage-by-stage runbook.
-Use **[PROMPT_CHEATSHEET.md](PROMPT_CHEATSHEET.md)** for the 7 prompts — copy each one and paste it into Cursor or `claude` as-is (only PROMPT 2 has a bracket to fill in).
+1. Pick a **preset** (Tony's Pizza, Library Booking, Tech Support,
+   Sales SDR, or Custom). Greeting + system prompt autofill.
+2. Pick **voice**, **LLM model**, **temperature**. Edit the system
+   prompt or greeting freely.
+3. Click **Connect**. The UI:
+   - Mints a LiveKit token
+   - Creates a fresh room with your settings as room metadata
+   - Dispatches the `tonys-pizza-agent` worker into it
+4. Speak. Transcripts stream into the chat pane.
+5. **Mute** toggles your local mic. **Disconnect** ends the session.
+6. **Reconnect** with different settings → brand-new room, agent
+   uses the new persona/voice/model — no worker restart.
 
----
+## How the persona override works
 
-## Filling in `livekit.toml`
+`dev_ui/server.py` JSON-encodes `{system_prompt, greeting, voice_id,
+groq_model, groq_temperature}` into the LiveKit room metadata.
+`agent.py` reads those keys in `entrypoint()` and overrides
+`SYSTEM_PROMPT`, the opening greeting, the TTS voice, and the Groq
+model/temperature. Missing keys fall back to the env or hardcoded
+defaults, so NovaSynth and the official playground keep working.
 
-The `livekit.toml` file is used by the LiveKit CLI (`lk agent create` / `lk agent deploy`). It starts empty — fill it in after running `lk agent create`:
+## Files
 
-```toml
-[project]
-  subdomain = "your-project-subdomain"   # found in LiveKit Cloud → Settings → subdomain (e.g. "my-project-abc123")
-
-[agent]
-  id = "CA_xxxxxxxxxxxx"                 # shown after running `lk agent create`, or via `lk agent list`
-```
-
-You don't need to fill this in before the smoke test (Step 5) — only before deploying via `lk agent deploy`.
-
----
-
-## Troubleshooting
-
-**`verify_setup.py` shows LiveKit CLI not found**
-
-The LiveKit CLI warning is non-blocking for the smoke test (Step 5). You only need it for deployment (Step 6). Install it with:
-```bash
-brew install livekit-cli
-```
-
-**Agent exits immediately / not responding in playground**
-
-Make sure `python agent.py dev` is still running in a terminal — it must stay open. The playground connects to LiveKit Cloud which dispatches to your local worker.
-
----
-
-## Stack
-
-```
-Caller ─► LiveKit ─► Smallest.ai Pulse (STT) ─► Groq gpt-oss-120b (LLM) ─► Smallest.ai Lightning (TTS) ─► Caller
-                                                        │
-                                                        └─► Noveum (traces, NovaSynth, NovaPilot)
-```
-
----
-
-## License
-
-MIT — fork it, ship it, sell it.
+- `agent.py` — LiveKit worker. Reads persona overrides from
+  `room.metadata`.
+- `dev_ui/server.py` — aiohttp on `:8080`. Serves the page; mints
+  tokens; creates room + dispatches the agent.
+- `dev_ui/static/{index.html, app.js, styles.css}` — the chat UI.
+- `tools/` — agent function tools (`place_order`, `end_call`).
+- `knowledge_sources/` — markdown the agent looks up (rebuild with
+  `python build_knowledge.py`).

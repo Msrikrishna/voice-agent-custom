@@ -243,6 +243,15 @@ async def entrypoint(ctx: JobContext) -> None:
     novasynth_mode = str(room_meta.get("novasynth_mode") or "").lower()
     is_text_mode = novasynth_mode == "text"
     record_audio = not is_text_mode
+
+    # Dev UI overrides — let a local browser session pick the persona, voice,
+    # model, and temperature without restarting the worker. Falls through to
+    # the hardcoded defaults below when keys are absent.
+    override_system_prompt = (room_meta.get("system_prompt") or "").strip() or None
+    override_greeting = (room_meta.get("greeting") or "").strip() or None
+    override_voice_id = (room_meta.get("voice_id") or "").strip() or None
+    override_groq_model = (room_meta.get("groq_model") or "").strip() or None
+    override_groq_temperature = room_meta.get("groq_temperature")
     logger.info(
         "session config: mode=%s record=%s room=%s",
         novasynth_mode or "voice (default)",
@@ -291,8 +300,12 @@ async def entrypoint(ctx: JobContext) -> None:
             language=os.environ.get("SMALLEST_STT_LANGUAGE", "en"),
         ),
         llm=groq.LLM(
-            model=os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b"),
-            temperature=float(os.environ.get("GROQ_TEMPERATURE", "0.4")),
+            model=override_groq_model or os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b"),
+            temperature=(
+                float(override_groq_temperature)
+                if override_groq_temperature not in (None, "")
+                else float(os.environ.get("GROQ_TEMPERATURE", "0.4"))
+            ),
             # Hard cap per turn. ~80 tokens = one sentence + any tool-call JSON.
             # Enforces the voice rule even when the LLM tries to monologue.
             # Increase via GROQ_MAX_COMPLETION_TOKENS if your agent legitimately
@@ -304,7 +317,7 @@ async def entrypoint(ctx: JobContext) -> None:
         tts=smallestai.TTS(
             api_key=_smallest_key,
             model=os.environ.get("SMALLEST_TTS_MODEL", "lightning-v3.1"),
-            voice_id=os.environ.get("SMALLEST_VOICE_ID", "sophia"),
+            voice_id=override_voice_id or os.environ.get("SMALLEST_VOICE_ID", "sophia"),
         ),
         # Tuned to feel natural — bumped up from defaults so the agent doesn't
         # cut users off mid-sentence and false barge-ins are rare.
@@ -373,7 +386,7 @@ async def entrypoint(ctx: JobContext) -> None:
     await session.start(
         room=ctx.room,
         agent=Agent(
-            instructions=SYSTEM_PROMPT,
+            instructions=override_system_prompt or SYSTEM_PROMPT,
             tools=[
                 place_order,
                 end_call,
@@ -412,7 +425,7 @@ async def entrypoint(ctx: JobContext) -> None:
 
     # Open with a warm greeting + AI disclosure.
     await session.generate_reply(
-        instructions=(
+        instructions=override_greeting or (
             "Greet the customer warmly as Tony from Tony's Pizza. Identify "
             "yourself as an AI assistant in the same sentence. Ask what they "
             "would like to order tonight. One sentence, then pause and listen."
